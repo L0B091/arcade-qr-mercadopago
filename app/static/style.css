@@ -1,0 +1,6 @@
+body{margin:0;background:#0b0b1e;color:#fff;font-family:system-ui,sans-serif;text-align:center}
+main{max-width:420px;margin:0 auto;padding:48px 20px}
+h1{color:#ffd400;letter-spacing:2px}
+button,.btn{display:block;width:100%;padding:22px;margin:28px 0 12px;border:0;border-radius:14px;
+background:#009ee3;color:#fff;font-size:1.3rem;font-weight:bold;text-decoration:none;cursor:pointer}
+button:disabled{opacity:.6}.icon{font-size:4rem}small{color:#aaa}

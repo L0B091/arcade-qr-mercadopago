@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Arcade - Cargar crédito</title>
+<link rel="stylesheet" href="/static/style.css"></head>
+<body><main>
+<h1>🕹️ ARCADE</h1>
+<p>Pagá con Mercado Pago y el crédito se carga solo en el juego.</p>
+<form method="post" action="/pagar" onsubmit="this.b.disabled=true;this.b.textContent='Abriendo Mercado Pago…'">
+  <button name="b" type="submit">Pagar 1 crédito — ${{price}}</button>
+</form>
+<small>1 pago = 1 crédito</small>
+</main></body></html>

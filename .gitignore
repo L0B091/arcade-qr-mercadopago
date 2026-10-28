@@ -1,0 +1,10 @@
+.env
+*.db
+*.db-journal
+logs/
+venv/
+.venv/
+__pycache__/
+*.pyc
+data/
+qr_arcade.png

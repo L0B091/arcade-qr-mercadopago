@@ -18,6 +18,7 @@ dependencies {
     implementation("androidx.activity:activity-compose:1.9.0")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.ui:ui")
+    implementation("androidx.compose.material:material-icons-core")
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
     implementation("androidx.print:print:1.0.0")
     implementation("androidx.work:work-runtime-ktx:2.9.0")

@@ -1,7 +1,7 @@
 # Arcade Admin (app Android)
 
 App para el dueño del arcade: ingresos, créditos usados, estado del equipo, historial de pagos,
-cambio de precio, alertas e impresión del QR. Estilo gamer retro azul/naranja.
+cambio de precio, alertas e impresión del QR. Diseño gamer moderno (dashboard tipo esports) en azul/naranja.
 Funciona **solo dentro del WiFi del local** (habla directo con la PC del arcade por `http://IP:8000`).
 
 ## Instalar
@@ -18,7 +18,7 @@ Funciona **solo dentro del WiFi del local** (habla directo con la PC del arcade 
 Si falla: revisá que la PC esté prendida, que el programa esté corriendo y que el Firewall de Windows permita Python en redes privadas.
 
 ## Pantallas
-- **INICIO**: ingresos hoy/semana/total, créditos usados, estado de la PC y del túnel, último pago (se refresca solo cada 15 s), aviso de alertas sin leer, botones **IMPRIMIR QR** (usa la impresión de Android) y **ABRIR PÁGINA IMPRIMIBLE**.
+- **INICIO**: gráfico de ingresos de los últimos 7 días, contadores animados, ingresos hoy/semana/total, créditos usados, estado de la PC y del túnel, último pago (se refresca solo cada 15 s), aviso de alertas sin leer, botones **IMPRIMIR QR** (usa la impresión de Android) y **ABRIR PÁGINA IMPRIMIBLE**.
 - **PAGOS**: historial con estado (aprobado / pendiente / rechazado) y si el crédito se cargó.
 - **PRECIO**: ver y cambiar el precio del crédito (pide confirmación, se aplica al instante).
 - **ALERTAS**: lista coloreada por nivel (info celeste, warning naranja, error rojo) y "marcar todas leídas".
@@ -31,4 +31,4 @@ Si el servidor todavía no tiene `/api/admin/alertas`, la app lo ignora sin romp
 
 ## Compilar (desarrolladores)
 JDK 17 + Android SDK 34: `cd android-app && ./gradlew assembleDebug`. También lo compila GitHub Actions en cada push.
-Fuente: Press Start 2P (SIL OFL 1.1, ver `FONT_LICENSE_OFL.txt`).
+Fuentes: Rajdhani (títulos) e Inter (texto), SIL OFL 1.1 — ver `licenses/`. Íconos: Material Icons (Apache 2.0).

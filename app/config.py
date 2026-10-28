@@ -27,7 +27,9 @@ FOCUS_EMULATOR = _get("FOCUS_EMULATOR", "1") == "1"
 ADMIN_KEY = _get("ADMIN_KEY")
 
 GITHUB_TOKEN = _get("GITHUB_TOKEN")
-GITHUB_PAGES_REPO = _get("GITHUB_PAGES_REPO")
+GITHUB_PAGES_REPO = _get("GITHUB_PAGES_REPO", "frarcade-26/frarcade-26.github.io")
+# URL fija que va impresa en el QR del gabinete (página de GitHub Pages del cliente)
+QR_URL = _get("QR_URL", "https://frarcade-26.github.io/")
 GITHUB_PAGES_BRANCH = _get("GITHUB_PAGES_BRANCH", "main")
 
 CLOUDFLARED_PATH = _get("CLOUDFLARED_PATH", "cloudflared.exe")

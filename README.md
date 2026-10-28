@@ -5,7 +5,7 @@ Sistema de cobro por QR para **un gabinete arcade** con PC Windows. El jugador e
 ## Cómo funciona
 
 ```
-QR fijo ─► usuario.github.io (redirige) ─► https://xxxx.trycloudflare.com ─► PC del arcade :8000
+QR fijo ─► frarcade-26.github.io (redirige) ─► https://xxxx.trycloudflare.com ─► PC del arcade :8000
                                                                              │
 Jugador toca "Pagar 1 crédito" ─► Checkout Pro de Mercado Pago ─► paga       │
 Mercado Pago ─► webhook (notification_url) ─► valida firma ─► consulta pago ─► SQLite ─► tecla de moneda
@@ -17,6 +17,12 @@ App Android (WiFi local) ─► http://192.168.1.50:8000/api/admin/*
 - **Seguridad**: firma `x-signature` (HMAC-SHA256), consulta del estado real con `GET /v1/payments/{id}`, idempotencia por `payment_id`.
 - **Sin pérdidas**: cada pago y cada crédito pendiente queda en SQLite; si se corta la luz, los créditos aprobados que faltaban se cargan al reiniciar.
 - **Precio**: guardado en SQLite (por defecto $2000), se cambia en vivo desde la app.
+
+## QR del gabinete
+
+<img src="docs/qr/qr_arcade.png" alt="QR del arcade" width="260">
+
+Apunta a `QR_URL` (por defecto `https://frarcade-26.github.io/`), la página fija de GitHub Pages del cliente. `tunnel.py` actualiza el `index.html` de `GITHUB_PAGES_REPO` (`frarcade-26/frarcade-26.github.io`) con la URL del túnel en cada arranque, así el QR impreso no cambia nunca. Archivos: [PNG](docs/qr/qr_arcade.png) · [SVG](docs/qr/qr_arcade.svg) · [Sticker A6 (PDF)](docs/qr/sticker_A6.pdf). La app Android lo puede imprimir con `GET /admin/qr/imprimir` (ver `docs/API_APP_ANDROID.md`).
 
 ## Estructura
 
@@ -32,7 +38,9 @@ app/
   admin.py        API para la app Android (solo LAN)
   logger.py       log rotativo en logs/arcade.log
   templates/ static/
-tools/generar_qr.py   genera el PNG del QR
+app/qr.py       genera el QR (PNG/SVG/página imprimible)
+tools/generar_qr.py   regenera docs/qr/ con QR_URL
+docs/qr/        QR listo: qr_arcade.png, qr_arcade.svg, sticker_A6.pdf
 tools/probar_tecla.py prueba la tecla de crédito
 tests/test_basico.py  pruebas (firma, idempotencia, flujo completo)
 install.bat  start.bat  instalar_inicio_automatico.bat
@@ -48,7 +56,7 @@ docs/MANUAL_CLIENTE.md  docs/API_APP_ANDROID.md
 5. Configurá en **todos los emuladores** la tecla de moneda/coin igual a `CREDIT_KEY` (por defecto `5`, que en MAME ya es la moneda del jugador 1).
 6. Doble clic en **`start.bat`**. En la ventana vas a ver `Túnel activo: https://...` y `Página del QR actualizada`.
 7. Probá la tecla: `venv\Scripts\python tools\probar_tecla.py` con un emulador abierto.
-8. Generá el QR: `venv\Scripts\python tools\generar_qr.py` → imprimí `qr_arcade.png`.
+8. El QR ya está generado en `docs/qr/` (ver abajo). Si cambiás `QR_URL`, regeneralo con `venv\Scripts\python tools\generar_qr.py`.
 9. Arranque automático: clic derecho en **`instalar_inicio_automatico.bat` → Ejecutar como administrador** (crea la tarea "ArcadeQR" al iniciar sesión). Alternativa: poné un acceso directo a `start.bat` en `Win+R → shell:startup`.
 
 > Configurá Windows para iniciar sesión automáticamente (`netplwiz`) y la PC con IP fija en el router (ej. `192.168.1.50`) para la app Android.

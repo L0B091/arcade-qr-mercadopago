@@ -1,0 +1,21 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Imprimir QR del arcade</title>
+<style>
+ @page { size: A6; margin: 8mm; }
+ body { font-family: Arial, sans-serif; text-align: center; margin: 0; }
+ .sticker { padding: 6mm; }
+ h1 { font-size: 20pt; margin: 2mm 0; }
+ img { width: 90mm; max-width: 95vw; height: auto; }
+ p { font-size: 10pt; color: #444; word-break: break-all; }
+ button { font-size: 18pt; padding: 10px 28px; margin: 14px; }
+ @media print { .no-print { display: none; } }
+</style></head><body>
+<div class="no-print"><button onclick="window.print()">🖨️ Imprimir QR</button></div>
+<div class="sticker">
+ <h1>🕹️ ARCADE</h1>
+ <img src="qr_arcade.png" alt="QR para pagar">
+ <p>https://frarcade-26.github.io/</p>
+</div>
+<script>window.addEventListener('load', () => setTimeout(() => window.print(), 600));</script>
+</body></html>

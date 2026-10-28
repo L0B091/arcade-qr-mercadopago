@@ -33,6 +33,29 @@ Si `tunnel_url` es `null`, el arcade no puede cobrar (sin internet o túnel caí
 ## PUT /api/admin/price
 Body: `{"price": 2500}` → `{"price":2500.0}`. Se aplica al instante en la página de pago.
 
+## GET /api/admin/qr.png
+Devuelve el PNG del QR fijo del gabinete (apunta a `QR_URL`). Mismas protecciones que el resto: header `X-Admin-Key` y solo WiFi local.
+
+## GET /admin/qr/imprimir?key=<ADMIN_KEY>
+Página HTML lista para imprimir (QR grande + leyenda, tamaño A6) que abre sola el diálogo de impresión y tiene un botón **Imprimir QR**.
+Como un navegador no puede mandar headers, **solo en esta página** la clave va en `?key=`. Sigue siendo solo WiFi local (403 si llega por el túnel o desde una IP pública).
+
+## Botón Imprimir QR
+En la app, agregá un botón **Imprimir QR** con una de estas dos opciones:
+
+1. **Recomendada (más simple):** abrir en el navegador
+   `http://192.168.1.50:8000/admin/qr/imprimir?key=<ADMIN_KEY>`
+   ```kotlin
+   startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("$baseUrl/admin/qr/imprimir?key=$adminKey")))
+   ```
+   Chrome abre el diálogo de impresión de Android (impresora WiFi o *Guardar como PDF*). Alternativa sin salir de la app: cargar la URL en un `WebView` y llamar a `PrintManager.print("QR Arcade", webView.createPrintDocumentAdapter("qr"), null)`.
+2. **Descargar el PNG:** `GET /api/admin/qr.png` con `X-Admin-Key`, y imprimirlo con AndroidX:
+   ```kotlin
+   PrintHelper(context).apply { scaleMode = PrintHelper.SCALE_MODE_FIT }.printBitmap("QR Arcade", bitmap)
+   ```
+
+Nota: la clave en la URL puede quedar en el historial del navegador del celular; está bien porque solo sirve dentro del WiFi del local.
+
 ## Ejemplo (curl)
 ```
 curl -H "X-Admin-Key: miclave" http://192.168.1.50:8000/api/admin/stats

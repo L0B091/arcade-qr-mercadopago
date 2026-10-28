@@ -67,6 +67,35 @@ def test_app_completa():
         assert c.get("/api/admin/status", headers=k).json()["ok"]
 
 
+
+
+def test_qr_admin():
+    from fastapi.testclient import TestClient
+    from app import main
+    # Sin "with": no arrancamos de nuevo el worker (ya corrió en test_app_completa)
+    c = TestClient(main.app, client=("192.168.1.20", 5000))
+    if True:
+        assert c.get("/api/admin/qr.png").status_code == 401                 # sin clave
+        r = c.get("/api/admin/qr.png", headers={"X-Admin-Key": "clave-test"})
+        assert r.status_code == 200 and r.headers["content-type"] == "image/png"
+        assert r.content[:8] == b"\x89PNG\r\n\x1a\n"
+        assert c.get("/api/admin/qr.png", headers={"X-Admin-Key": "clave-test",
+                                                   "cf-ray": "x"}).status_code == 403
+        assert c.get("/admin/qr/imprimir").status_code == 401
+        assert c.get("/admin/qr/imprimir?key=mal").status_code == 401
+        r = c.get("/admin/qr/imprimir?key=clave-test")
+        assert r.status_code == 200 and "window.print()" in r.text and "data:image/png" in r.text
+        assert c.get("/admin/qr/imprimir?key=clave-test",
+                     headers={"cf-connecting-ip": "1.2.3.4"}).status_code == 403
+    c = TestClient(main.app, client=("8.8.8.8", 5000))  # IP pública
+    assert c.get("/admin/qr/imprimir?key=clave-test").status_code == 403
+
+
+def test_qr_config():
+    assert config.QR_URL == "https://frarcade-26.github.io/"
+    assert config.GITHUB_PAGES_REPO == "frarcade-26/frarcade-26.github.io"
+
+
 if __name__ == "__main__":
-    for t in (test_firma, test_idempotencia, test_app_completa):
+    for t in (test_firma, test_idempotencia, test_app_completa, test_qr_admin, test_qr_config):
         t(); print("OK", t.__name__)

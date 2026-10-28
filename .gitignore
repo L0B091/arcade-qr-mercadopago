@@ -7,4 +7,4 @@ venv/
 __pycache__/
 *.pyc
 data/
-qr_arcade.png
+/qr_arcade.png

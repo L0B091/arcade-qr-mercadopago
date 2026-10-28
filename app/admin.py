@@ -9,16 +9,18 @@ Protecciones:
 import hmac
 import ipaddress
 import time
-from fastapi import APIRouter, Depends, Header, HTTPException, Request
+import base64
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request
+from fastapi.responses import HTMLResponse, Response
 from pydantic import BaseModel, Field
-from . import config, db, tunnel
+from . import config, db, qr, tunnel
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 STARTED = time.time()
 CF_HEADERS = ("cf-connecting-ip", "cf-ray", "cf-ipcountry", "cf-visitor", "x-forwarded-for")
 
 
-def require_local_admin(request: Request, x_admin_key: str = Header(default="")):
+def _check_lan(request: Request):
     if any(h in request.headers for h in CF_HEADERS):
         raise HTTPException(403, "La administración solo funciona desde el WiFi del local")
     try:
@@ -27,8 +29,16 @@ def require_local_admin(request: Request, x_admin_key: str = Header(default=""))
         raise HTTPException(403, "IP inválida")
     if not (ip.is_private or ip.is_loopback):
         raise HTTPException(403, "La administración solo funciona desde el WiFi del local")
-    if not config.ADMIN_KEY or not hmac.compare_digest(x_admin_key, config.ADMIN_KEY):
+
+
+def _check_key(key: str):
+    if not config.ADMIN_KEY or not hmac.compare_digest(key or "", config.ADMIN_KEY):
         raise HTTPException(401, "Clave de administrador incorrecta")
+
+
+def require_local_admin(request: Request, x_admin_key: str = Header(default="")):
+    _check_lan(request)
+    _check_key(x_admin_key)
 
 
 class PriceIn(BaseModel):
@@ -60,3 +70,24 @@ def status():
 def set_price(body: PriceIn):
     db.set_setting("price", round(body.price, 2))
     return {"price": db.get_price()}
+
+
+@router.get("/qr.png", dependencies=[Depends(require_local_admin)])
+def qr_png():
+    """PNG del QR fijo del gabinete (para descargar e imprimir desde Android)."""
+    return Response(qr.make_png(), media_type="image/png",
+                    headers={"Content-Disposition": 'inline; filename="qr_arcade.png"'})
+
+
+# Página imprimible: el navegador no puede mandar headers, así que SOLO acá
+# se acepta la clave por ?key=. Sigue siendo solo WiFi local.
+print_router = APIRouter(tags=["admin"])
+
+
+@print_router.get("/admin/qr/imprimir", response_class=HTMLResponse)
+def qr_imprimir(request: Request, key: str = Query(default="")):
+    _check_lan(request)
+    _check_key(key)
+    src = "data:image/png;base64," + base64.b64encode(qr.make_png()).decode()
+    return HTMLResponse(qr.print_html(src), headers={"Cache-Control": "no-store",
+                                                      "Referrer-Policy": "no-referrer"})

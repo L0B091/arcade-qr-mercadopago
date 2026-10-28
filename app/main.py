@@ -35,6 +35,7 @@ async def lifespan(app):
 
 app = FastAPI(title="Arcade QR", lifespan=lifespan, docs_url=None, redoc_url=None)
 app.include_router(admin.router)
+app.include_router(admin.print_router)
 app.mount("/static", StaticFiles(directory=Path(__file__).parent / "static"), name="static")
 
 

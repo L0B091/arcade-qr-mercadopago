@@ -4,22 +4,33 @@ Son pasos que hacés **una sola vez**. Anotá cada dato que copies, porque despu
 
 ## 1. Cuenta de GitHub y página del QR
 
-1. Entrá a <https://github.com/signup> y creá una cuenta gratis (ej. usuario `arcadejuan`).
+1. Entrá a <https://github.com/signup> y creá una cuenta gratis (ej. usuario `frarcade-26`).
 2. Arriba a la derecha: **+ → New repository**.
-   - Nombre: `arcadejuan.github.io` (tu usuario + `.github.io`).
+   - Nombre: `frarcade-26.github.io` (tu usuario + `.github.io`).
    - Marcá **Public** y tildá **Add a README file**. Clic en **Create repository**.
 3. En el repo: **Settings → Pages** → *Source*: **Deploy from a branch**, rama **main**, carpeta **/(root)** → **Save**.
 4. Creá el token: tu foto → **Settings → Developer settings → Personal access tokens → Fine-grained tokens → Generate new token**.
    - Nombre: `arcade`. Vencimiento: el más largo posible (anotá la fecha para renovarlo).
-   - *Repository access*: **Only select repositories** → elegí `arcadejuan.github.io`.
+   - *Repository access*: **Only select repositories** → elegí `frarcade-26.github.io`.
    - *Permissions → Repository permissions → Contents*: **Read and write**.
    - **Generate token** y copiá el código `github_pat_...` (se muestra una sola vez).
 5. En `.env`:
    ```
    GITHUB_TOKEN=github_pat_...
-   GITHUB_PAGES_REPO=arcadejuan/arcadejuan.github.io
+   GITHUB_PAGES_REPO=frarcade-26/frarcade-26.github.io
    ```
-Tu QR va a apuntar a `https://arcadejuan.github.io/`.
+Tu QR va a apuntar a `https://frarcade-26.github.io/`.
+
+### Tu QR (ya está listo)
+
+![QR del arcade](qr/qr_arcade.png)
+
+Este es **el QR definitivo** de tu arcade. Apunta a `https://frarcade-26.github.io/`, tu página fija de GitHub. Cada vez que el arcade arranca, el programa actualiza esa página para que mande al jugador a la dirección del momento, así que **no hace falta reimprimirlo nunca**.
+
+- Para imprimir: usá [`qr/sticker_A6.pdf`](qr/sticker_A6.pdf) (tamaño A6, ideal para pegar) o [`qr/qr_arcade.png`](qr/qr_arcade.png). Para imprenta o vinilo: [`qr/qr_arcade.svg`](qr/qr_arcade.svg).
+- Tamaño mínimo: **6 x 6 cm**. Pegalo a la altura de los ojos, donde no le dé el reflejo de luces.
+- También lo podés imprimir desde la app del celular con el botón **Imprimir QR**.
+- Si algún día cambiás de página, poné la nueva en `QR_URL` del `.env` y corré `venv\Scripts\python tools\generar_qr.py`.
 
 ## 2. Mercado Pago
 

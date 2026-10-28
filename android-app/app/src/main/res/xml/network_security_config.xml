@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- La PC del arcade se accede por HTTP plano dentro del WiFi local (IP variable
+     192.168.x.x / 10.x.x.x), por eso se permite cleartext. La app solo habla con esa PC. -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>

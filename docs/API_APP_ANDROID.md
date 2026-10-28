@@ -1,5 +1,7 @@
 # API para la app Android
 
+> App Android: ver [android-app/README.md](android-app/README.md).
+
 - Base: `http://<IP-de-la-PC>:8000` (ej. `http://192.168.1.50:8000`). **Solo WiFi local**, HTTP plano (en Android habilitá `usesCleartextTraffic` o un `network_security_config` para esa IP).
 - Header obligatorio: `X-Admin-Key: <ADMIN_KEY>`.
 - Respuestas JSON. Errores: `401` clave incorrecta, `403` fuera de la red local o vía túnel, `422` datos inválidos.

@@ -13,7 +13,7 @@ import base64
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse, Response
 from pydantic import BaseModel, Field
-from . import config, db, qr, tunnel
+from . import alertas, config, db, qr, tunnel
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 STARTED = time.time()
@@ -41,6 +41,14 @@ def require_local_admin(request: Request, x_admin_key: str = Header(default=""))
     _check_key(x_admin_key)
 
 
+def _tunnel_status():
+    """Estado del watchdog del túnel (reinicios, último reinicio, URL actual)."""
+    from .main import quick_tunnel
+    st = quick_tunnel.status()
+    st["tunnel_url"] = tunnel.public_url() or None
+    return st
+
+
 class PriceIn(BaseModel):
     price: float = Field(gt=0, le=1_000_000)
 
@@ -60,6 +68,8 @@ def status():
     return {"ok": True, "uptime_s": int(time.time() - STARTED),
             "tunnel_url": tunnel.public_url() or None,
             "tunnel_started": db.get_setting("tunnel_started"),
+            "tunnel_restarts_total": int(db.get_setting("tunnel_restarts_total", 0) or 0),
+            **_tunnel_status(),
             "github_page_updated": db.get_setting("github_page_updated"),
             "last_webhook": db.get_setting("last_webhook"),
             "credit_key": config.CREDIT_KEY,
@@ -91,3 +101,21 @@ def qr_imprimir(request: Request, key: str = Query(default="")):
     src = "data:image/png;base64," + base64.b64encode(qr.make_png()).decode()
     return HTMLResponse(qr.print_html(src), headers={"Cache-Control": "no-store",
                                                       "Referrer-Policy": "no-referrer"})
+
+
+# ---------- Alertas del vigilante ----------
+class MarcarIn(BaseModel):
+    ids: list[int] | None = None   # marcar estas
+    hasta_id: int | None = None    # o todas hasta este id (si no se manda nada: todas)
+
+
+@router.get("/alertas", dependencies=[Depends(require_local_admin)])
+def get_alertas(desde_id: int = 0, limite: int = Query(default=100, ge=1, le=500),
+                solo_no_leidas: bool = False):
+    return alertas.listar(desde_id, limite, solo_no_leidas)
+
+
+@router.post("/alertas/marcar_leidas", dependencies=[Depends(require_local_admin)])
+def post_marcar_leidas(body: MarcarIn | None = None):
+    body = body or MarcarIn()
+    return {"marcadas": alertas.marcar_leidas(body.ids, body.hasta_id)}

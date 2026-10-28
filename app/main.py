@@ -8,12 +8,13 @@ Rutas públicas (pasan por el túnel):
 Rutas privadas (solo WiFi local): /api/admin/*  (ver admin.py)
 """
 import logging
+import time
 from contextlib import asynccontextmanager
 from pathlib import Path
 from fastapi import BackgroundTasks, FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
-from . import admin, config, db, logger, mercadopago, tunnel, webhook
+from . import admin, alertas, config, db, logger, mercadopago, tunnel, webhook
 from .credits import CreditWorker
 
 logger.setup()
@@ -26,6 +27,8 @@ quick_tunnel = tunnel.QuickTunnel()
 @asynccontextmanager
 async def lifespan(app):
     db.init()
+    alertas.init()
+    alertas.registrar("backend_reiniciado", "El servidor del arcade arrancó", "info")
     worker.start()
     quick_tunnel.start()
     log.info("Arcade listo en puerto %s. Precio actual: $%s", config.PORT, db.get_price())
@@ -61,6 +64,7 @@ def pagar(request: Request):
     if not base:
         # Sin túnel no llegarían los avisos de pago: mejor no cobrar
         log.error("Intento de pago sin URL pública (túnel caído)")
+        alertas.registrar("tunel_caido", "Un jugador intentó pagar sin túnel activo", "warning")
         return render("result.html", title="Arcade fuera de servicio",
                       msg="No hay conexión con internet. Probá en un minuto.", icon="⚠️")
     price = db.get_price()
@@ -68,6 +72,7 @@ def pagar(request: Request):
         pref, ref = mercadopago.create_preference(price, base)
     except Exception as e:
         log.error("No se pudo crear la preferencia: %s", e)
+        alertas.registrar("excepcion", f"No se pudo crear la preferencia: {e}")
         return render("result.html", title="Error", icon="⚠️",
                       msg="No pudimos iniciar el pago. Probá de nuevo.")
     db.save_preference(ref, pref.get("id"), price)
@@ -99,6 +104,7 @@ def process_payment(payment_id):
         p = mercadopago.get_payment(payment_id)
     except Exception as e:
         log.error("No pude consultar el pago %s: %s (MP reintentará el aviso)", payment_id, e)
+        alertas.registrar("pago_error_consulta", f"Pago {payment_id}: {e}", "warning")
         return
     status = p.get("status")
     amount = p.get("transaction_amount")
@@ -125,6 +131,7 @@ async def mp_webhook(request: Request, background: BackgroundTasks):
     if not webhook.validate(config.MP_WEBHOOK_SECRET, request.headers.get("x-signature"),
                             request.headers.get("x-request-id"), data_id):
         log.warning("Webhook con firma INVÁLIDA rechazado (id=%s)", data_id)
+        alertas.registrar("webhook_firma_invalida", f"Aviso rechazado (id={data_id})", "warning")
         return JSONResponse({"error": "firma inválida"}, status_code=401)
 
     if topic != "payment" or not data_id:
@@ -137,4 +144,13 @@ async def mp_webhook(request: Request, background: BackgroundTasks):
 
 @app.get("/health")
 def health():
-    return {"ok": True}
+    """Lo usa el watchdog del túnel (local y a través de Cloudflare)."""
+    return {"ok": True, "ts": int(time.time())}
+
+
+@app.exception_handler(Exception)
+async def _excepcion(request: Request, exc: Exception):
+    """Cualquier error no previsto queda como alerta para la app de Android."""
+    log.exception("Error no previsto en %s", request.url.path)
+    alertas.registrar("excepcion", f"{request.url.path}: {type(exc).__name__}: {exc}")
+    return JSONResponse({"error": "error interno"}, status_code=500)

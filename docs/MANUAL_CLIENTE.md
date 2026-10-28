@@ -70,3 +70,23 @@ Inventá una clave larga en `ADMIN_KEY=` del `.env`. Es la que vas a escribir en
 - Prendé el arcade: arranca todo solo.
 - Si un jugador dice que pagó y no se cargó: mirá `logs\arcade.log` o el historial en la app.
 - Si cambiás de router, revisá que la PC siga con la misma IP para la app.
+
+## 6. Que no se caiga
+
+El arcade se cuida solo en tres niveles:
+
+1. **Vigilante del túnel** (dentro del programa): cada 30 segundos prueba que el QR funcione de punta a punta (entra por internet a la dirección del túnel y verifica que el arcade responda). Si falla 3 veces seguidas, o si el túnel se cierra, lo vuelve a levantar solo, esperando cada vez un poco más (5 s, 10 s, 20 s… hasta 5 minutos), y actualiza la página del QR con la nueva dirección. Cada reinicio queda en el log y en **Alertas** de la app.
+2. **`start.bat`**: si el programa entero se cierra, lo vuelve a abrir a los 5 segundos. No cierres la ventana negra "Arcade QR - NO CERRAR".
+3. **Tarea de Windows "ArcadeQR"**: arranca todo al prender la PC y, si igual se cae, lo reintenta cada minuto.
+
+**Una sola vez, en la PC del arcade:**
+
+1. Clic derecho en **`configurar_windows.bat` → Ejecutar como administrador**. Hace que la PC nunca se suspenda ni hiberne, que no apague el WiFi/USB para ahorrar energía y que Windows Update no reinicie sola con la sesión abierta.
+2. Clic derecho en **`instalar_inicio_automatico.bat` → Ejecutar como administrador**.
+3. Para que no pida contraseña al prender: `Win+R` → `netplwiz` → destildá "Los usuarios deben escribir su nombre y contraseña".
+4. En el BIOS de la PC activá **"Restore on AC Power Loss = Power On"**, así se prende sola cuando vuelve la luz.
+5. Si podés, conectá la PC al router **por cable**: es mucho más estable que el WiFi.
+
+**Si igual se cae:** en la app vas a ver una alerta "túnel caído". Lo normal es que se arregle solo en menos de un minuto. Si no, revisá que haya internet en el local y reiniciá la PC.
+
+> El túnel gratis de Cloudflare no necesita cuenta. Cloudflare no garantiza que esté siempre disponible; por eso el vigilante lo reinicia solo. Si algún día querés algo 100 % estable, se puede pasar a un túnel con nombre (requiere un dominio propio, ~USD 10 por año).

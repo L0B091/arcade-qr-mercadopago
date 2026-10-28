@@ -11,7 +11,7 @@ import queue
 import sys
 import threading
 import time
-from . import config, db
+from . import alertas, config, db
 
 log = logging.getLogger("credits")
 
@@ -153,4 +153,8 @@ class CreditWorker:
                     log.error("Error cargando crédito %s (intento %d): %s",
                               payment_id, attempt + 1, e)
                     time.sleep(2)
+            else:
+                alertas.registrar("credito_no_aplicado",
+                                  f"Pago {payment_id} aprobado pero el crédito no se pudo cargar "
+                                  "(queda pendiente para el próximo reinicio)")
             self.q.task_done()

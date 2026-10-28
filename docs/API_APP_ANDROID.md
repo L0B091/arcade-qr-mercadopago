@@ -64,3 +64,50 @@ curl -H "X-Admin-Key: miclave" http://192.168.1.50:8000/api/admin/stats
 curl -X PUT -H "X-Admin-Key: miclave" -H "Content-Type: application/json" -d "{\"price\":2500}" http://192.168.1.50:8000/api/admin/price
 ```
 Sugerencia: refrescar `stats` y `status` cada 10–30 s. Firewall de Windows: permitir Python en redes **privadas** (puerto 8000).
+
+## Alertas del vigilante
+
+Eventos guardados en SQLite (tabla `alertas`). Igual que el resto: solo desde el WiFi del local y con header `X-Admin-Key`. Si llegan por el túnel → `403`.
+
+Tipos (`tipo`): `backend_reiniciado` (info), `tunel_activo` (info), `tunel_sin_respuesta` (warning), `tunel_caido` (error), `tunel_reiniciado` (warning), `backend_sin_respuesta` (error), `github_pages_fallo` (error), `webhook_firma_invalida` (warning), `pago_error_consulta` (warning), `credito_no_aplicado` (error), `excepcion` (error). Niveles (`nivel`): `info`, `warning`, `error`.
+
+### GET /api/admin/alertas?desde_id=0&limite=100&solo_no_leidas=false
+
+Devuelve las alertas con `id > desde_id`, **las más nuevas primero** (máx. `limite`, 1–500). Para polling: guardá `ultimo_id` y la próxima vez pedí `?desde_id=<ultimo_id>`.
+
+```json
+{
+  "alertas": [
+    {"id": 42, "fecha": "2026-10-28T14:44:20", "nivel": "error", "tipo": "tunel_caido",
+     "mensaje": "3 chequeos públicos fallidos", "leida": false}
+  ],
+  "no_leidas": 5,
+  "ultimo_id": 42
+}
+```
+`fecha` es hora local de la PC (sin zona), formato ISO.
+
+### POST /api/admin/alertas/marcar_leidas
+
+Body (todos opcionales; si no mandás nada o `{}` marca todas):
+```json
+{"ids": [40, 41, 42]}
+```
+o
+```json
+{"hasta_id": 42}
+```
+Respuesta:
+```json
+{"marcadas": 3}
+```
+
+### Campos del vigilante en GET /api/admin/status
+```json
+{"tunnel_url": "https://xxx.trycloudflare.com", "tunnel_alive": true, "tunnel_protocol": "http2",
+ "tunnel_restarts": 2, "tunnel_restarts_total": 17, "tunnel_last_restart": "2026-10-28T14:44:20",
+ "tunnel_last_restart_reason": "cloudflared terminó (código 1)", "tunnel_consecutive_fails": 0,
+ "tunnel_last_check": "2026-10-28T15:00:00", "tunnel_last_ok": "2026-10-28T15:00:00",
+ "backend_local_ok": true}
+```
+`tunnel_restarts` = desde que arrancó el programa; `tunnel_restarts_total` = histórico.

@@ -82,10 +82,20 @@ Solo hacen falta dos datos en `.env`: **Access Token de producción** (`MP_ACCES
 
 Estados: `approved` → se carga el crédito; `pending`/`in_process` → se registra y se espera el próximo aviso; `rejected`/`cancelled` → se registra, no se carga nada.
 
+## Que no se caiga (vigilante del túnel)
+
+- **Watchdog** (`app/tunnel.py`): lanza `cloudflared tunnel --no-autoupdate --protocol http2 --url http://localhost:PORT`; cada `TUNNEL_CHECK_INTERVAL` (30 s) verifica proceso vivo + `GET http://127.0.0.1:PORT/health` + `GET <url-túnel>/health`. Con `TUNNEL_MAX_FAILS` (3) fallas seguidas o si cloudflared muere, lo mata y relanza con backoff exponencial (5 s → 5 min), lee la nueva URL `trycloudflare.com` y actualiza `index.html` de GitHub Pages con reintentos (y reintenta en cada chequeo si quedó desactualizada). `TUNNEL_PROTOCOL=quic|auto` si `http2` anduviera mal.
+- Estado en `GET /api/admin/status`: `tunnel_url`, `tunnel_alive`, `tunnel_restarts`, `tunnel_restarts_total`, `tunnel_last_restart`, `tunnel_last_restart_reason`, `tunnel_last_ok`, `backend_local_ok`.
+- Alertas en SQLite (`alertas`) y `GET /api/admin/alertas` (ver `docs/API_APP_ANDROID.md`).
+- **`start.bat`** relanza `run.py` si termina (log en `logs/supervisor.log`).
+- **`instalar_inicio_automatico.bat`** (admin) importa `windows/ArcadeQR_tarea.xml`: al iniciar sesión, reintento cada 1 min, sin límite de tiempo, sin cortar por batería.
+- **`configurar_windows.bat`** (admin): plan alto rendimiento, sin suspensión/hibernación, sin suspensión selectiva USB/PCIe/WiFi, sin ahorro de energía en placas de red, `NoAutoRebootWithLoggedOnUsers` de Windows Update. Activá en BIOS "Restore on AC Power Loss".
+- Prueba en Linux: `python3 tests/test_tunel_watchdog.py 5` (cloudflared simulado) o `CLOUDFLARED_REAL=/ruta/cloudflared python3 tests/test_tunel_watchdog.py 5`.
+
 ## Logs y datos
 
 - `logs/arcade.log` (rotativo, 5 × 2 MB): cada preferencia, aviso, estado y crédito cargado.
-- `data/arcade.db`: SQLite con tablas `payments`, `preferences`, `settings`. Se puede abrir con *DB Browser for SQLite*.
+- `data/arcade.db`: SQLite con tablas `payments`, `preferences`, `settings`, `alertas`. Se puede abrir con *DB Browser for SQLite*.
 
 ## Pruebas
 
